@@ -1,0 +1,11 @@
+# Private real holdings — the repo ships data/holdings.sample.csv instead
+data/holdings.csv
+# Generated market snapshot written by the Refresh button
+data/snapshot.json
+
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.DS_Store
