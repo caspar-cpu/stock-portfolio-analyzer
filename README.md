@@ -1,5 +1,7 @@
 # Stock Portfolio Analyzer
 
+[![CI](https://github.com/caspar-cpu/stock-portfolio-analyzer/actions/workflows/ci.yml/badge.svg)](https://github.com/caspar-cpu/stock-portfolio-analyzer/actions/workflows/ci.yml)
+
 A Streamlit decision-support app for a real multi-account equity portfolio. It reads a
 holdings CSV and a research log, prices every position against a market snapshot, and
 scores each one with a transparent rules engine so you can see *why* a name reads as
