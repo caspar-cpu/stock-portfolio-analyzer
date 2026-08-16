@@ -1,0 +1,4 @@
+# Tooling for regenerating docs/screenshots via tools/capture_screenshots.py.
+# Kept separate from requirements-dev.txt so a normal dev setup doesn't pull a browser.
+# After installing, run: playwright install chromium
+playwright>=1.40
