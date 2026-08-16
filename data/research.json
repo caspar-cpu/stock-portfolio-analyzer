@@ -1,0 +1,243 @@
+{
+  "as_of": "2026-08-15",
+  "fx_usd_per_gbp_fallback": 1.348,
+  "sources": [
+    "stockanalysis.com",
+    "company IR and SEC filings",
+    "TipRanks",
+    "MarketBeat",
+    "Barchart",
+    "Fintel",
+    "Investing.com",
+    "GuruFocus",
+    "press coverage"
+  ],
+  "themes": {
+    "BE": "AI power & compute infra",
+    "NBIS": "AI power & compute infra",
+    "HIVE": "AI power & compute infra",
+    "BWXT": "AI power & compute infra",
+    "SNDK": "Semiconductors & memory",
+    "AMAT": "Semiconductors & memory",
+    "MU": "Semiconductors & memory",
+    "LRCX": "Semiconductors & memory",
+    "TSM": "Semiconductors & memory",
+    "NFLX": "Mega-cap tech",
+    "MSFT": "Mega-cap tech",
+    "GOOGL": "Mega-cap tech",
+    "LULU": "Consumer, financials & other",
+    "NU": "Consumer, financials & other",
+    "MA": "Consumer, financials & other",
+    "TSLA": "Consumer, financials & other",
+    "BA": "Consumer, financials & other",
+    "LLY": "Consumer, financials & other"
+  },
+  "tickers": {
+    "BE": {
+      "consensus": "buy",
+      "consensus_note": "12 of 29 analysts on Hold",
+      "avg_target_upside_pct": 19.6,
+      "target_range": "$97–390",
+      "volume_trend": "falling",
+      "market_holding": "momentum",
+      "short_interest_pct": 7.0,
+      "beta": 3.83,
+      "note": "Ownership handoff: Situational Awareness cut ~35% (~$1bn+), KIA −69%, Ameriprise −36%, D.E. Shaw −23%, insiders sold ~$83m, while BlackRock added mechanically — conviction holders to index money."
+    },
+    "NFLX": {
+      "consensus": "buy",
+      "consensus_note": "15 analysts on Hold",
+      "avg_target_upside_pct": 20.3,
+      "target_range": "$70–135",
+      "volume_trend": "falling",
+      "market_holding": "long-term",
+      "peg": 1.13,
+      "note": "Post 10-for-1 split. Ackman re-entered in Q2 2026: 3.15m shares, 4.9% of his book."
+    },
+    "SNDK": {
+      "consensus": "buy",
+      "avg_target_upside_pct": 27.6,
+      "target_range": "$1,000–3,600",
+      "volume_trend": "rising",
+      "market_holding": "momentum",
+      "forward_pe": 7.6,
+      "note": "Single-digit forward multiple is the market pricing peak memory earnings, not cheapness. Norges Bank, Sixth Street and Jupiter Topco were top-three new buyers in Q2 2026 (same quarter as MU and AMAT)."
+    },
+    "AMAT": {
+      "consensus": "strong_buy",
+      "avg_target_upside_pct": 25.8,
+      "target_range": "$358–900",
+      "volume_trend": "falling",
+      "market_holding": "long-term",
+      "forward_pe": 28.8
+    },
+    "NBIS": {
+      "consensus": "moderate_buy",
+      "consensus_note": "Split between Strong Buy and Moderate Buy",
+      "avg_target_upside_pct": 6.1,
+      "target_range": "$144–410",
+      "volume_trend": "rising_fast",
+      "market_holding": "momentum",
+      "short_interest_pct": 26.3,
+      "note": "Michael Burry disclosed a short position in Q2 2026 13Fs."
+    },
+    "MU": {
+      "consensus": "strong_buy",
+      "avg_target_upside_pct": 54.6,
+      "target_range": "$361–2,200",
+      "volume_trend": "falling",
+      "market_holding": "cyclical",
+      "forward_pe": 6.8,
+      "note": "Single-digit forward multiple is the market pricing peak memory earnings, not cheapness."
+    },
+    "LULU": {
+      "consensus": "hold",
+      "consensus_note": "0 Buy ratings in the last 3 months",
+      "avg_target_upside_pct": 7.0,
+      "target_range": "$88–154",
+      "volume_trend": "falling",
+      "market_holding": "turnaround",
+      "peg": 1.17,
+      "short_interest_pct": 9.4,
+      "note": "Heidi O'Neill starts as CEO on 8 Sep 2026."
+    },
+    "MSFT": {
+      "consensus": "strong_buy",
+      "avg_target_upside_pct": 15.0,
+      "target_range": "$400–870",
+      "volume_trend": "falling",
+      "market_holding": "long-term",
+      "peg": 1.56
+    },
+    "BA": {
+      "consensus": "buy",
+      "consensus_note": "0 Sell ratings",
+      "avg_target_upside_pct": 18.7,
+      "target_range": "$246–305",
+      "volume_trend": "falling_hard",
+      "market_holding": "long-term",
+      "peg": 1.67
+    },
+    "LLY": {
+      "consensus": "buy",
+      "avg_target_upside_pct": 10.1,
+      "target_range": "$850–1,600",
+      "volume_trend": "falling",
+      "market_holding": "long-term",
+      "peg": 1.37
+    },
+    "GOOGL": {
+      "consensus": "strong_buy",
+      "consensus_note": "0 Sell ratings",
+      "avg_target_upside_pct": 23.9,
+      "target_range": "$340–515",
+      "volume_trend": "falling",
+      "market_holding": "long-term",
+      "peg": 1.93,
+      "note": "Berkshire made Alphabet a top-three position in Q2 2026 ($37.8bn combined A + C, ~$17bn added)."
+    },
+    "TSLA": {
+      "consensus": "weak_buy",
+      "consensus_note": "18 Holds, 6 Sells",
+      "avg_target_upside_pct": 15.9,
+      "target_range": "$125–600",
+      "volume_trend": "falling_hard",
+      "market_holding": "momentum",
+      "peg": 6.56
+    },
+    "LRCX": {
+      "consensus": "strong_buy",
+      "avg_target_upside_pct": 15.0,
+      "consensus_note": "Average target upside quoted at +11% to +19%",
+      "target_range": "$275–700",
+      "volume_trend": "falling",
+      "market_holding": "long-term",
+      "peg": 1.31,
+      "forward_pe": 35.1
+    },
+    "NU": {
+      "consensus": "buy",
+      "avg_target_upside_pct": 20.8,
+      "target_range": "$10–23",
+      "volume_trend": "rising",
+      "market_holding": "both",
+      "peg": 0.45,
+      "note": "Berkshire fully exited in Q1 2025 and does not appear in its Q2 2026 13F — any 'Buffett stock' framing is over a year stale."
+    },
+    "TSM": {
+      "consensus": "strong_buy",
+      "avg_target_upside_pct": 28.3,
+      "target_range": "$431.50–700",
+      "volume_trend": "falling",
+      "market_holding": "long-term",
+      "forward_pe": 19.2
+    },
+    "HIVE": {
+      "consensus": "strong_buy",
+      "consensus_note": "Only 8 analysts cover it",
+      "avg_target_upside_pct": 162.5,
+      "target_range": "$4.50–10",
+      "volume_trend": "collapsed",
+      "market_holding": "speculative",
+      "short_interest_pct": 22.9,
+      "note": "Volume collapsed −67%."
+    },
+    "BWXT": {
+      "consensus": "buy",
+      "consensus_note": "Lowest analyst target sits above spot",
+      "avg_target_upside_pct": 38.1,
+      "target_range": "$190–290",
+      "volume_trend": "falling",
+      "market_holding": "long-term",
+      "peg": 2.78
+    },
+    "MA": {
+      "consensus": "strong_buy",
+      "consensus_note": "0 Sell ratings",
+      "avg_target_upside_pct": 16.9,
+      "target_range": "$550–735",
+      "volume_trend": "falling",
+      "market_holding": "long-term",
+      "peg": 1.61,
+      "note": "Q3 2026 will be the first quarter under new CFO Ling Hai."
+    }
+  },
+  "observations": [
+    "Volume is thinning almost everywhere: only SNDK, NBIS and NU are rising on rising volume; fifteen of eighteen holdings show declining participation.",
+    "The market pays very different multiples for the same cycle: AMAT 28.8x forward, LRCX 35.1x, TSM 19.2x, MU 6.8x, SNDK 7.6x. The memory makers' single-digit forward multiples are the market pricing peak earnings, not cheapness.",
+    "PEG ranking (cheapest growth first): NU 0.45, NFLX 1.13, LULU 1.17, LRCX 1.31, LLY 1.37, MSFT 1.56, MA 1.61, BA 1.67, GOOGL 1.93, BWXT 2.78, TSLA 6.56.",
+    "Highest short interest: NBIS 26.3%, HIVE 22.9%, LULU 9.4%, BE 7.0% — these are the battlegrounds.",
+    "Bloom Energy ownership is rotating from conviction holders to index money: Situational Awareness cut ~35%, KIA −69%, Ameriprise −36%, D.E. Shaw −23%, insiders sold ~$83m, while BlackRock added mechanically.",
+    "Marquee 13F moves: Berkshire made Alphabet a top-three position (~$17bn added); Ackman re-entered Netflix and fully exited Alphabet; Michael Burry disclosed a short on Nebius.",
+    "Berkshire fully exited Nu Holdings in Q1 2025 and does not appear in its Q2 2026 13F — any 'Buffett stock' framing of NU is over a year stale.",
+    "Semiconductors, memory and AI-power names move together on the AI capex cycle — they concentrate rather than diversify a book that holds several at once."
+  ],
+  "catalysts": [
+    {"sort_date": "2026-08-17", "label": "17 Aug 2026", "tickers": ["HIVE"], "event": "Fiscal Q1 2027 earnings call"},
+    {"sort_date": "2026-08-27", "label": "27 Aug 2026", "tickers": ["LULU"], "event": "Q2 earnings (consensus EPS $1.82)"},
+    {"sort_date": "2026-09-08", "label": "8 Sep 2026", "tickers": ["LULU"], "event": "Heidi O'Neill starts as CEO"},
+    {"sort_date": "2026-09-08", "label": "8–9 Sep 2026", "tickers": ["AMAT"], "event": "Citi TMT and Goldman Communacopia — 2027 WFE commentary", "approx": true},
+    {"sort_date": "2026-09-10", "label": "10 Sep 2026", "tickers": ["TSM"], "event": "TSMC August monthly revenue (then 8 Oct, 10 Nov, 10 Dec)"},
+    {"sort_date": "2026-09-15", "label": "Sep 2026", "tickers": ["MSFT"], "event": "Maia 300 AI chip reveal", "approx": true},
+    {"sort_date": "2026-09-22", "label": "22 Sep 2026", "tickers": ["MU"], "event": "Fiscal Q4 (bar: $50bn revenue, $31.00 EPS)"},
+    {"sort_date": "2026-10-15", "label": "Oct 2026", "tickers": ["BE"], "event": "Oracle warrants on ~3.5m shares at $113.28 expire (dilution)", "approx": true},
+    {"sort_date": "2026-10-20", "label": "20 Oct 2026", "tickers": ["NFLX"], "event": "Q3 earnings"},
+    {"sort_date": "2026-10-21", "label": "21 Oct 2026", "tickers": ["LRCX"], "event": "Q1 FY2027 earnings"},
+    {"sort_date": "2026-10-22", "label": "~22 Oct 2026", "tickers": ["MA"], "event": "Q3 earnings — first under new CFO Ling Hai", "approx": true},
+    {"sort_date": "2026-10-22", "label": "~22 Oct 2026", "tickers": ["NBIS"], "event": "Q3 earnings (estimated)", "approx": true},
+    {"sort_date": "2026-10-27", "label": "27 Oct 2026", "tickers": ["MSFT"], "event": "FQ1 2027 earnings"},
+    {"sort_date": "2026-10-27", "label": "27 Oct 2026", "tickers": ["GOOGL"], "event": "Q3 earnings"},
+    {"sort_date": "2026-10-28", "label": "28 Oct 2026", "tickers": ["TSLA"], "event": "Q3 earnings"},
+    {"sort_date": "2026-10-28", "label": "28 Oct 2026", "tickers": ["BA"], "event": "Q3 earnings"},
+    {"sort_date": "2026-10-29", "label": "29 Oct 2026", "tickers": ["BE"], "event": "Q3 earnings"},
+    {"sort_date": "2026-10-29", "label": "29 Oct 2026", "tickers": ["LLY"], "event": "Q3 earnings"},
+    {"sort_date": "2026-11-05", "label": "early Nov 2026 (TBC)", "tickers": ["BWXT"], "event": "Q3 earnings", "approx": true},
+    {"sort_date": "2026-11-12", "label": "12 Nov 2026", "tickers": ["AMAT"], "event": "Fiscal Q4 earnings"},
+    {"sort_date": "2026-11-12", "label": "12 Nov 2026", "tickers": ["NU"], "event": "Q3 earnings"},
+    {"sort_date": "2026-11-17", "label": "17–20 Nov 2026", "tickers": ["MSFT"], "event": "Microsoft Ignite", "approx": true},
+    {"sort_date": "2027-01-30", "label": "~30 Jan 2027", "tickers": ["NU"], "event": "Deadline to capitalise US national bank under OCC conditional approval", "approx": true},
+    {"sort_date": "2027-02-01", "label": "Early 2027", "tickers": ["BA"], "event": "777X certification and first delivery; 737-7/-10 first delivery", "approx": true},
+    {"sort_date": "2027-02-15", "label": "Q1 2027", "tickers": ["LLY"], "event": "Retatrutide BLA submission", "approx": true},
+    {"sort_date": "2027-06-30", "label": "By 2027", "tickers": ["GOOGL"], "event": "DMA obligations bite (search data sharing with rivals)", "approx": true}
+  ]
+}
