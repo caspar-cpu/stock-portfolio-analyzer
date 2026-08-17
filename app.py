@@ -26,12 +26,15 @@ from core.portfolio import (
 )
 from core.research import load_research, upcoming_catalysts
 from core.signals import score_position
+from core.storage import load_holdings_gist, save_holdings_gist
 from theme import DARK, LIGHT, app_css
 from ui import views
 
 DATA_DIR = Path(__file__).parent / "data"
 SNAPSHOT_PATH = DATA_DIR / "snapshot.json"
 FX_FALLBACK = 1.348
+GIST_ID = os.environ.get("HOLDINGS_GIST_ID")
+GIST_TOKEN = os.environ.get("HOLDINGS_GIST_TOKEN")
 
 st.set_page_config(page_title="Portfolio Analyzer", page_icon="📈", layout="wide")
 
@@ -78,6 +81,38 @@ def cached_holdings(path: str, mtime: float):
     return load_holdings(Path(path))
 
 
+@st.cache_data(show_spinner=False, ttl=30)
+def cached_remote_holdings(gist_id: str, _token: str):
+    return load_holdings_gist(gist_id, _token)
+
+
+def _remote_configured() -> bool:
+    return bool(GIST_ID and GIST_TOKEN)
+
+
+def load_active_holdings() -> tuple[pd.DataFrame, str]:
+    """The working holdings table plus a short label for its source — used
+    for display and to decide where Manage holdings writes edits back to."""
+    if _remote_configured():
+        remote = cached_remote_holdings(GIST_ID, GIST_TOKEN)
+        if remote is not None:
+            return remote, "private gist"
+        return load_holdings(DATA_DIR / "holdings.sample.csv"), "shipped sample"
+
+    holdings_path = resolve_holdings_path()
+    holdings = cached_holdings(str(holdings_path), holdings_path.stat().st_mtime)
+    return holdings, holdings_path.name
+
+
+def save_active_holdings(holdings: pd.DataFrame) -> None:
+    if _remote_configured():
+        save_holdings_gist(holdings, GIST_ID, GIST_TOKEN)
+        cached_remote_holdings.clear()
+    else:
+        save_holdings(holdings, private_holdings_path())
+        cached_holdings.clear()
+
+
 @st.cache_data(show_spinner=False)
 def cached_research(path: str, mtime: float):
     return load_research(Path(path))
@@ -116,7 +151,7 @@ def score_all(valued, research, snapshot, themes_df, today) -> dict:
     return scores
 
 
-def sidebar(holdings_path: Path, snapshot: dict | None) -> tuple[str, dict]:
+def sidebar(holdings: pd.DataFrame, source_label: str, snapshot: dict | None) -> tuple[str, dict]:
     with st.sidebar:
         st.markdown('<div class="pc-brand">Portfolio Analyzer</div>', unsafe_allow_html=True)
         st.caption("Decision support · not financial advice")
@@ -138,17 +173,16 @@ def sidebar(holdings_path: Path, snapshot: dict | None) -> tuple[str, dict]:
             st.caption("No snapshot yet — refresh to price live.")
 
         if st.button("↻ Refresh market data", use_container_width=True):
-            _run_refresh(holdings_path)
+            _run_refresh(holdings)
 
         st.divider()
         mode = st.radio("Theme", ["Dark", "Light"], horizontal=True)
-        st.caption(f"Holdings: `{holdings_path.name}`")
+        st.caption(f"Holdings: `{source_label}`")
 
     return page, (DARK if mode == "Dark" else LIGHT)
 
 
-def _run_refresh(holdings_path: Path) -> None:
-    holdings = load_holdings(holdings_path)
+def _run_refresh(holdings: pd.DataFrame) -> None:
     with st.spinner("Fetching latest prices from Yahoo Finance…"):
         try:
             _, failed = refresh_snapshot(holdings["ticker"].tolist(), SNAPSHOT_PATH)
@@ -174,16 +208,15 @@ def _fallback_value(row, entries: dict, fx: float, prior_value: dict) -> float:
 
 
 def manage_holdings_page(
-    holdings_path: Path, holdings: pd.DataFrame, snapshot: dict | None
+    source_label: str, holdings: pd.DataFrame, snapshot: dict | None
 ) -> None:
     entries = (snapshot or {}).get("tickers", {})
     fx = (snapshot or {}).get("usd_per_gbp") or FX_FALLBACK
-    save_path = private_holdings_path()
 
-    if holdings_path == DATA_DIR / "holdings.sample.csv":
+    if source_label == "shipped sample":
         st.info(
             "You're currently viewing the shipped sample. The first change you save here "
-            "creates your own private `holdings.csv` — the sample stays untouched."
+            "creates your own private holdings — the sample stays untouched."
         )
 
     with st.container(border=True):
@@ -212,8 +245,7 @@ def manage_holdings_page(
                         "shares": shares,
                         "value_gbp_snapshot": round(shares * found["price"] / fx, 2),
                     }])
-                    save_holdings(pd.concat([holdings, new_row], ignore_index=True), save_path)
-                    cached_holdings.clear()
+                    save_active_holdings(pd.concat([holdings, new_row], ignore_index=True))
                     st.success(f"Added {found['name']} ({found['ticker']}) — {shares:g} shares.")
                     st.rerun()
 
@@ -248,8 +280,7 @@ def manage_holdings_page(
                 _fallback_value(row, entries, fx, prior_value)
                 for row in cleaned.itertuples(index=False)
             ]
-            save_holdings(cleaned, save_path)
-            cached_holdings.clear()
+            save_active_holdings(cleaned)
             st.success("Holdings saved.")
             st.rerun()
 
@@ -259,25 +290,23 @@ def main() -> None:
         return
 
     today = date.today()
-    holdings_path = resolve_holdings_path()
-
-    holdings = cached_holdings(str(holdings_path), holdings_path.stat().st_mtime)
+    holdings, source_label = load_active_holdings()
     research_path = DATA_DIR / "research.json"
     research = cached_research(str(research_path), research_path.stat().st_mtime)
     snapshot = cached_snapshot(
         str(SNAPSHOT_PATH), SNAPSHOT_PATH.stat().st_mtime if SNAPSHOT_PATH.exists() else None
     )
 
-    page, theme = sidebar(holdings_path, snapshot)
+    page, theme = sidebar(holdings, source_label, snapshot)
     st.markdown(app_css(theme), unsafe_allow_html=True)
 
     if page == "Manage holdings":
-        manage_holdings_page(holdings_path, holdings, snapshot)
+        manage_holdings_page(source_label, holdings, snapshot)
         return
 
     if holdings.empty:
         st.warning(
-            f"`{holdings_path.name}` has no positions. "
+            f"`{source_label}` has no positions. "
             "Add one from Manage holdings to see your portfolio."
         )
         return
