@@ -1,7 +1,13 @@
 import pandas as pd
 import pytest
 
-from core.portfolio import load_holdings, portfolio_history_usd, theme_weights, value_positions
+from core.portfolio import (
+    load_holdings,
+    portfolio_history_usd,
+    save_holdings,
+    theme_weights,
+    value_positions,
+)
 
 HOLDINGS = pd.DataFrame(
     {
@@ -73,3 +79,19 @@ def test_portfolio_history_sums_covered_tickers():
 
 def test_portfolio_history_none_without_snapshot():
     assert portfolio_history_usd(HOLDINGS, None) is None
+
+
+def test_save_holdings_round_trips_through_load(tmp_path):
+    path = tmp_path / "holdings.csv"
+    save_holdings(HOLDINGS, path)
+    reloaded = load_holdings(path)
+    pd.testing.assert_frame_equal(reloaded, HOLDINGS)
+
+
+def test_save_holdings_writes_only_required_columns(tmp_path):
+    path = tmp_path / "holdings.csv"
+    extra = HOLDINGS.assign(scratch_column="drop me")
+    save_holdings(extra, path)
+    assert list(pd.read_csv(path).columns) == [
+        "account", "ticker", "name", "shares", "value_gbp_snapshot",
+    ]

@@ -13,12 +13,14 @@ import os
 from datetime import date, datetime
 from pathlib import Path
 
+import pandas as pd
 import streamlit as st
 
-from core.market import BENCHMARK, close_series, load_snapshot, refresh_snapshot
+from core.market import BENCHMARK, close_series, load_snapshot, lookup_ticker, refresh_snapshot
 from core.portfolio import (
     load_holdings,
     portfolio_history_usd,
+    save_holdings,
     theme_weights,
     value_positions,
 )
@@ -62,6 +64,13 @@ def resolve_holdings_path() -> Path:
     """Prefer the user's private holdings.csv; fall back to the shipped sample."""
     private = DATA_DIR / "holdings.csv"
     return private if private.exists() else DATA_DIR / "holdings.sample.csv"
+
+
+def private_holdings_path() -> Path:
+    """Where edits always land. Distinct from resolve_holdings_path(): editing
+    while only the sample exists must fork a private file, never overwrite the
+    sample that ships in the repo."""
+    return DATA_DIR / "holdings.csv"
 
 
 @st.cache_data(show_spinner=False)
@@ -115,7 +124,7 @@ def sidebar(holdings_path: Path, snapshot: dict | None) -> tuple[str, dict]:
 
         page = st.radio(
             "Navigate",
-            ["Dashboard", "Positions", "Research desk", "Calendar"],
+            ["Dashboard", "Positions", "Research desk", "Calendar", "Manage holdings"],
             label_visibility="collapsed",
             key="nav",
         )
@@ -154,6 +163,97 @@ def _run_refresh(holdings_path: Path) -> None:
     st.rerun()
 
 
+def _fallback_value(row, entries: dict, fx: float, prior_value: dict) -> float:
+    """A holding's GBP value for the file-price fallback: live-priced when the
+    current snapshot covers it, otherwise whatever the file last recorded (so
+    a transient fetch miss, like Yahoo briefly flagging a real ticker as
+    delisted, doesn't zero out a position on save)."""
+    if row.ticker in entries:
+        return round(row.shares * entries[row.ticker]["price"] / fx, 2)
+    return prior_value.get(row.ticker, 0.0)
+
+
+def manage_holdings_page(
+    holdings_path: Path, holdings: pd.DataFrame, snapshot: dict | None
+) -> None:
+    entries = (snapshot or {}).get("tickers", {})
+    fx = (snapshot or {}).get("usd_per_gbp") or FX_FALLBACK
+    save_path = private_holdings_path()
+
+    if holdings_path == DATA_DIR / "holdings.sample.csv":
+        st.info(
+            "You're currently viewing the shipped sample. The first change you save here "
+            "creates your own private `holdings.csv` — the sample stays untouched."
+        )
+
+    with st.container(border=True):
+        st.markdown("#### Add a position")
+        st.caption(
+            "Look up a ticker on Yahoo Finance to confirm it before adding it to your book."
+        )
+        with st.form("add_position", clear_on_submit=True):
+            c1, c2, c3 = st.columns([1.2, 1, 1.2])
+            symbol = c1.text_input("Ticker", placeholder="e.g. AAPL")
+            shares = c2.number_input("Shares", min_value=0.0, step=1.0, format="%.6f")
+            account = c3.text_input("Account", placeholder="e.g. Invest")
+            submitted = st.form_submit_button("Look up & add")
+        if submitted:
+            if not symbol.strip() or shares <= 0 or not account.strip():
+                st.error("Enter a ticker, a positive share count, and an account name.")
+            else:
+                found = lookup_ticker(symbol)
+                if found is None:
+                    st.error(f"Couldn't find a priced ticker matching '{symbol}'.")
+                else:
+                    new_row = pd.DataFrame([{
+                        "account": account.strip(),
+                        "ticker": found["ticker"],
+                        "name": found["name"],
+                        "shares": shares,
+                        "value_gbp_snapshot": round(shares * found["price"] / fx, 2),
+                    }])
+                    save_holdings(pd.concat([holdings, new_row], ignore_index=True), save_path)
+                    cached_holdings.clear()
+                    st.success(f"Added {found['name']} ({found['ticker']}) — {shares:g} shares.")
+                    st.rerun()
+
+    with st.container(border=True):
+        st.markdown("#### Edit or remove positions")
+        st.caption(
+            "Change a share count, retype an account, or delete a row (sold out) with the "
+            "trash icon. Use the blank row at the bottom to add a position manually."
+        )
+        edited = st.data_editor(
+            holdings[["account", "ticker", "name", "shares"]],
+            num_rows="dynamic",
+            use_container_width=True,
+            key="holdings_editor",
+            column_config={
+                "shares": st.column_config.NumberColumn(
+                    "Shares", min_value=0.0, format="%.6f"
+                ),
+            },
+        )
+        if st.button("Save changes"):
+            cleaned = edited.copy()
+            cleaned["ticker"] = cleaned["ticker"].astype(str).str.strip().str.upper()
+            cleaned["account"] = cleaned["account"].astype(str).str.strip()
+            cleaned["name"] = cleaned["name"].fillna(cleaned["ticker"])
+            cleaned = cleaned[(cleaned["ticker"] != "") & (cleaned["shares"] > 0)]
+
+            prior_value = dict(
+                zip(holdings["ticker"], holdings["value_gbp_snapshot"], strict=False)
+            )
+            cleaned["value_gbp_snapshot"] = [
+                _fallback_value(row, entries, fx, prior_value)
+                for row in cleaned.itertuples(index=False)
+            ]
+            save_holdings(cleaned, save_path)
+            cached_holdings.clear()
+            st.success("Holdings saved.")
+            st.rerun()
+
+
 def main() -> None:
     if not _authenticated():
         return
@@ -171,8 +271,15 @@ def main() -> None:
     page, theme = sidebar(holdings_path, snapshot)
     st.markdown(app_css(theme), unsafe_allow_html=True)
 
+    if page == "Manage holdings":
+        manage_holdings_page(holdings_path, holdings, snapshot)
+        return
+
     if holdings.empty:
-        st.warning(f"`{holdings_path.name}` has no positions. Add rows to see your portfolio.")
+        st.warning(
+            f"`{holdings_path.name}` has no positions. "
+            "Add one from Manage holdings to see your portfolio."
+        )
         return
 
     usd_per_gbp = (snapshot or {}).get("usd_per_gbp") or FX_FALLBACK
