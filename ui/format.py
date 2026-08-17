@@ -52,3 +52,9 @@ def stance_chip(stance: str, theme: dict) -> str:
         f'<span class="pc-chip" style="background:{colour}22;color:{colour};'
         f'border:1px solid {colour}55;">{stance}</span>'
     )
+
+
+def stat_label(text: str) -> str:
+    """A short, uppercase, letter-spaced title above a hero number — distinct
+    from st.caption(), which stays sentence-case for explainer prose."""
+    return f'<div class="pc-label">{text}</div>'

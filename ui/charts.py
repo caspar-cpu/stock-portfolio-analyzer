@@ -121,7 +121,8 @@ def price_with_ma(entry: dict, theme: dict) -> go.Figure:
             hovertemplate="%{x|%d %b %Y}<br>$%{y:.2f}<extra></extra>",
         )
     )
-    for window, colour in ((50, theme["categorical"][2]), (200, theme["categorical"][1])):
+    ma_styles = ((50, theme["text_2"], "solid"), (200, theme["muted"], "dash"))
+    for window, colour, dash in ma_styles:
         if len(close) >= window:
             ma = close.rolling(window).mean()
             fig.add_trace(
@@ -130,7 +131,7 @@ def price_with_ma(entry: dict, theme: dict) -> go.Figure:
                     y=ma.values,
                     name=f"{window}DMA",
                     mode="lines",
-                    line={"color": colour, "width": 1.5},
+                    line={"color": colour, "width": 1.5, "dash": dash},
                     hovertemplate=f"%{{x|%d %b %Y}}<br>{window}DMA $%{{y:.2f}}<extra></extra>",
                 )
             )
