@@ -20,6 +20,12 @@ def load_holdings(path: Path) -> pd.DataFrame:
     return df
 
 
+def save_holdings(holdings: pd.DataFrame, path: Path) -> None:
+    """Persist an edited holdings table. Callers own validation and
+    normalisation before calling this — it writes exactly what it's given."""
+    holdings[list(REQUIRED_COLUMNS)].to_csv(path, index=False)
+
+
 def value_positions(
     holdings: pd.DataFrame, snapshot: dict | None, usd_per_gbp: float
 ) -> pd.DataFrame:

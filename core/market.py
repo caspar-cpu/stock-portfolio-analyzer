@@ -2,7 +2,8 @@
 
 The app never fetches implicitly: every read comes from the snapshot last saved
 to disk, and refresh_snapshot() — wired to the Refresh button — is the only
-network call. This keeps the app usable offline and off Yahoo's rate limits.
+network call besides lookup_ticker(), which fires once per explicit search
+when adding a new position.
 """
 
 from __future__ import annotations
@@ -134,3 +135,26 @@ def load_snapshot(path: Path) -> dict | None:
 def close_series(entry: dict) -> pd.Series:
     """Rehydrate a snapshot ticker entry into a date-indexed close series."""
     return pd.Series(entry["close"], index=pd.to_datetime(entry["dates"]))
+
+
+def lookup_ticker(symbol: str) -> dict | None:
+    """Validate a ticker against Yahoo Finance for the 'add a position' flow.
+
+    Returns its display name and latest price, or None if the symbol doesn't
+    resolve to a priced instrument. A bad/unknown symbol can fail in whatever
+    way Yahoo's undocumented API and yfinance's parsing choose to fail, so this
+    is a real external trust boundary — catch broadly and report "not found"
+    rather than propagate.
+    """
+    symbol = symbol.strip().upper()
+    if not symbol:
+        return None
+    try:
+        info = yf.Ticker(symbol).info
+    except Exception:  # noqa: BLE001 — any lookup failure just means "not found"
+        return None
+    price = info.get("currentPrice") or info.get("regularMarketPrice")
+    name = info.get("shortName") or info.get("longName")
+    if price is None or not name:
+        return None
+    return {"ticker": symbol, "name": name, "price": float(price)}
