@@ -1,5 +1,5 @@
 from theme import DARK
-from ui.format import md_escape, money_gbp, money_usd, pct, signed_class, stance_chip
+from ui.format import md_escape, money_gbp, money_usd, pct, signed_class, stance_chip, stat_label
 
 
 def test_md_escape_neutralises_dollar_and_tilde():
@@ -43,3 +43,7 @@ def test_stance_chip_uses_status_colour():
     chip = stance_chip("Accumulate", DARK)
     assert DARK["status"]["good"] in chip
     assert "Accumulate" in chip
+
+
+def test_stat_label_wraps_text():
+    assert stat_label("Total holdings") == '<div class="pc-label">Total holdings</div>'
