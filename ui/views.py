@@ -15,7 +15,29 @@ import streamlit as st
 from core.research import Catalyst, upcoming_catalysts
 from core.signals import PositionScore
 from ui import charts
-from ui.format import md_escape, money_gbp, money_usd, pct, signed_class, stance_chip
+from ui.format import md_escape, money_gbp, money_usd, pct, signed_class, stance_chip, stat_label
+
+# Static UI copy: what each decision-score component actually asks. Keyed on
+# core.signals.Component.name, which drives its own weighting and detail text.
+COMPONENT_EXPLAINERS = {
+    "Trend": "is the price above its moving averages?",
+    "Momentum": "is RSI in a healthy zone, or stretched?",
+    "Street view": "what do analysts think?",
+    "Valuation headroom": "real upside left, and cheap for its growth?",
+    "Risk drag": "short interest and thinning volume working against it",
+}
+
+STANCE_LEGEND = (
+    "Accumulate = setup looks favourable · Hold = no urgency · "
+    "Watch = something's off · Review = worth reconsidering."
+)
+
+FLAG_LEGEND = (
+    "⚑ Concentration = one name is a big slice of your book · "
+    "Theme crowding = a whole theme is oversized, so several holdings move together · "
+    "Event = an earnings or catalyst date is close · "
+    "Battleground = short interest is high enough that opinion is genuinely split."
+)
 
 
 def _table(headers: list[tuple[str, bool]], rows: list[list[str]]) -> str:
@@ -55,33 +77,40 @@ def dashboard(
 
     c1, c2, c3, c4 = st.columns(4)
     with c1, st.container(border=True):
-        st.caption("Total holdings")
+        st.markdown(stat_label("Total holdings"), unsafe_allow_html=True)
         st.markdown(f'<div class="pc-hero">{money_gbp(total)}</div>', unsafe_allow_html=True)
         cls = signed_class(day_pct)
         st.markdown(
             f'<span class="{cls}">{money_gbp(day_delta)} ({pct(day_pct, sign=True)}) today</span>',
             unsafe_allow_html=True,
         )
+        st.caption("Everything you hold, valued in GBP at the last refreshed price.")
     with c2, st.container(border=True):
-        st.caption("Positions")
+        st.markdown(stat_label("Positions"), unsafe_allow_html=True)
         st.markdown(f'<div class="pc-hero">{len(valued)}</div>', unsafe_allow_html=True)
         st.markdown(
             f"across {valued['account'].nunique()} accounts", unsafe_allow_html=True
         )
+        st.caption("How many distinct tickers you hold, and in how many accounts.")
     with c3, st.container(border=True):
-        st.caption("Largest position")
+        st.markdown(stat_label("Largest position"), unsafe_allow_html=True)
         st.markdown(f'<div class="pc-hero">{top["ticker"]}</div>', unsafe_allow_html=True)
         st.markdown(f"{top['weight_pct']:.1f}% of portfolio", unsafe_allow_html=True)
+        st.caption("Your single biggest bet — what would move the total most.")
     with c4, st.container(border=True):
-        st.caption("Risk flags")
+        st.markdown(stat_label("Risk flags"), unsafe_allow_html=True)
         st.markdown(f'<div class="pc-hero">{flagged}</div>', unsafe_allow_html=True)
         st.markdown("positions with active flags", unsafe_allow_html=True)
+        st.caption("Positions with a concentration, crowding, event or short-interest warning.")
 
     left, right = st.columns([1.6, 1])
     with left, st.container(border=True):
         st.markdown("#### Portfolio performance")
         if history_gbp is not None:
-            st.caption("Indexed to 100 at window start · current shares held throughout")
+            st.caption(
+                "Both lines start at 100 so you can compare shape, not scale — "
+                "a fair like-for-like against the market."
+            )
             st.plotly_chart(
                 charts.performance_area(history_gbp, benchmark, theme),
                 use_container_width=True,
@@ -91,6 +120,10 @@ def dashboard(
             st.info("Refresh market data to chart performance.")
     with right, st.container(border=True):
         st.markdown("#### Allocation by theme")
+        st.caption(
+            "Groups holdings by what actually drives them — several tickers can "
+            "move together on one theme, so this isn't the same as diversification."
+        )
         st.plotly_chart(
             charts.allocation_bar(themes, theme),
             use_container_width=True,
@@ -109,9 +142,10 @@ def dashboard(
         st.markdown(
             _table([("Stance", False), ("Positions", True)], rows), unsafe_allow_html=True
         )
-        st.caption("Rules-based. Decision support, not financial advice.")
+        st.caption(f"{STANCE_LEGEND} Rules-based — decision support, not financial advice.")
     with b2, st.container(border=True):
         st.markdown("#### Next catalysts")
+        st.caption("Dated company events — earnings, launches, deadlines — from the research log.")
         events = upcoming_catalysts(research, today)[:5]
         if events:
             rows = [
@@ -181,8 +215,10 @@ def positions(
             )
         st.markdown(_table(headers, rows), unsafe_allow_html=True)
         st.caption(
-            "Score 0–100 blends trend, momentum, street view, valuation headroom and risk drag. "
-            "Positions without research coverage show no score."
+            "Score 0–100 blends trend, momentum, street view, valuation headroom and risk drag "
+            "— see the Research desk for the breakdown on any name. Positions without research "
+            "coverage show no score. 'file price' means the market snapshot doesn't cover that "
+            "ticker yet, so the value shown is from your holdings file, not a live price."
         )
 
 
@@ -225,16 +261,43 @@ def research_desk(
                 config={"displayModeBar": False},
             )
             for comp in score.components:
-                st.markdown(f"**{comp.name}** · {md_escape(comp.detail)}")
+                explainer = COMPONENT_EXPLAINERS.get(comp.name, "")
+                st.markdown(f"**{comp.name}** — {explainer}")
+                st.caption(md_escape(comp.detail))
         else:
             st.info("No research coverage for this position yet.")
     with right, st.container(border=True):
         st.markdown("#### Market read")
         if entry is not None:
             m1, m2, m3 = st.columns(3)
-            m1.metric("Price", money_usd(entry["price"]), pct(entry["day_change_pct"], sign=True))
-            m2.metric("RSI (14)", f"{entry['rsi14']:.0f}" if entry["rsi14"] else "—")
-            m3.metric("Off 52w high", pct(entry["pct_off_52w_high"]))
+            m1.metric(
+                "Price",
+                money_usd(entry["price"]),
+                pct(entry["day_change_pct"], sign=True),
+                help="Latest close in USD, from the last market refresh.",
+            )
+            m2.metric(
+                "RSI (14)",
+                f"{entry['rsi14']:.0f}" if entry["rsi14"] else "—",
+                help=(
+                    "Relative Strength Index — a 0–100 gauge of recent buying/selling "
+                    "pressure. Above 70 = overbought (may pull back). Below 30 = oversold "
+                    "(may bounce). 45–70 is a healthy, unstretched zone."
+                ),
+            )
+            m3.metric(
+                "Off 52w high",
+                pct(entry["pct_off_52w_high"]),
+                help=(
+                    "How far below the highest price in the last year. Deeply negative can "
+                    "mean 'cheap' or 'still falling' — check the other signals."
+                ),
+            )
+            st.caption(
+                "Close price with its 50- and 200-day moving averages — the average closing "
+                "price over roughly the last 2.5 and 10 months. Price above both usually "
+                "marks an uptrend."
+            )
             st.plotly_chart(
                 charts.price_with_ma(entry, theme),
                 use_container_width=True,
@@ -250,19 +313,38 @@ def research_desk(
                 "".join(f'<span class="pc-flag">⚑ {f}</span>' for f in score.flags),
                 unsafe_allow_html=True,
             )
+            st.caption(FLAG_LEGEND)
 
     with st.container(border=True):
         st.markdown("#### Research log")
         if ticker_research:
             cols = st.columns(4)
             fields = [
-                ("Consensus", ticker_research.get("consensus", "—").replace("_", " ")),
-                ("Avg target", pct(ticker_research.get("avg_target_upside_pct"), sign=True)),
-                ("Target range", ticker_research.get("target_range", "—")),
-                ("Short interest", pct(ticker_research.get("short_interest_pct"), digits=0)),
+                (
+                    "Consensus",
+                    ticker_research.get("consensus", "—").replace("_", " "),
+                    "What professional analysts collectively rate this stock — not gospel, "
+                    "but a useful crowd-check.",
+                ),
+                (
+                    "Avg target",
+                    pct(ticker_research.get("avg_target_upside_pct"), sign=True),
+                    "How much higher analysts expect the price to go, on average, from here.",
+                ),
+                (
+                    "Target range",
+                    ticker_research.get("target_range", "—"),
+                    "The lowest-to-highest price target across covering analysts.",
+                ),
+                (
+                    "Short interest",
+                    pct(ticker_research.get("short_interest_pct"), digits=0),
+                    "Share of stock out on loan to investors betting the price falls. "
+                    "High means a real bear case exists.",
+                ),
             ]
-            for col, (label, value) in zip(cols, fields, strict=True):
-                col.metric(label, value)
+            for col, (label, value, help_text) in zip(cols, fields, strict=True):
+                col.metric(label, value, help=help_text)
             if ticker_research.get("note"):
                 st.markdown(f"> {md_escape(ticker_research['note'])}")
         else:
@@ -280,7 +362,10 @@ def research_desk(
 def calendar(research: dict, theme: dict, today: date) -> None:
     with st.container(border=True):
         st.markdown("#### Catalyst calendar")
-        st.caption("Dated events from the research log, nearest first.")
+        st.caption(
+            "Dated events from the research log, nearest first. 'approx' means the source "
+            "only gave a month or quarter, not an exact date, so there's no countdown."
+        )
         events = upcoming_catalysts(research, today)
         if not events:
             st.info("No upcoming catalysts.")
