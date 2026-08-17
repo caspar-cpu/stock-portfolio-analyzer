@@ -8,6 +8,8 @@ so the app stays fast, offline-capable, and off Yahoo's rate limits.
 
 from __future__ import annotations
 
+import hmac
+import os
 from datetime import date, datetime
 from pathlib import Path
 
@@ -30,6 +32,30 @@ SNAPSHOT_PATH = DATA_DIR / "snapshot.json"
 FX_FALLBACK = 1.348
 
 st.set_page_config(page_title="Portfolio Analyzer", page_icon="📈", layout="wide")
+
+
+def _authenticated() -> bool:
+    """Gate the app behind APP_PASSWORD when it's set (a public deploy sets it
+    as a host environment variable — never committed to the repo). Skipped
+    entirely for local dev, where the only access is already the user's own
+    machine."""
+    expected = os.environ.get("APP_PASSWORD")
+    if not expected or st.session_state.get("authed"):
+        return True
+
+    st.markdown(app_css(DARK), unsafe_allow_html=True)
+    _, mid, _ = st.columns([1, 1.2, 1])
+    with mid, st.container(border=True):
+        st.markdown('<div class="pc-brand">Portfolio Analyzer</div>', unsafe_allow_html=True)
+        st.caption("Private — enter the password to continue.")
+        entered = st.text_input("Password", type="password", label_visibility="collapsed")
+        if entered:
+            if hmac.compare_digest(entered, expected):
+                st.session_state["authed"] = True
+                st.rerun()
+            else:
+                st.error("Incorrect password.")
+    return False
 
 
 def resolve_holdings_path() -> Path:
@@ -83,7 +109,7 @@ def score_all(valued, research, snapshot, themes_df, today) -> dict:
 
 def sidebar(holdings_path: Path, snapshot: dict | None) -> tuple[str, dict]:
     with st.sidebar:
-        st.markdown('<div class="pc-brand">📈 Portfolio Analyzer</div>', unsafe_allow_html=True)
+        st.markdown('<div class="pc-brand">Portfolio Analyzer</div>', unsafe_allow_html=True)
         st.caption("Decision support · not financial advice")
         st.divider()
 
@@ -129,6 +155,9 @@ def _run_refresh(holdings_path: Path) -> None:
 
 
 def main() -> None:
+    if not _authenticated():
+        return
+
     today = date.today()
     holdings_path = resolve_holdings_path()
 
